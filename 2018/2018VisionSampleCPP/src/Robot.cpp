@@ -70,16 +70,15 @@ public:
 							if (pipeline.GetFilterContoursOutput()->size() > 1)
 							{
 								double highScore = 0;
-								boundingRect* target;
-								target = new boundingRect();
+								boundingRect target;
 
 								//Iterate through list of found contours
-								for(int i=0; i < pipeline.GetFilterContoursOutput()->size(); i++)
+								for(unsigned int i=0; i < pipeline.GetFilterContoursOutput()->size(); i++)
 								{
 									cv::Rect rectangle1 = cv::boundingRect(cv::Mat(pipeline.GetFilterContoursOutput()[i]));
 
 									//For each contour, iterate through the list of remaining contours to try all pairs
-									for(int j=i+1; j < pipeline.GetFilterContoursOutput()->size(); j++)
+									for(unsigned int j=i+1; j < pipeline.GetFilterContoursOutput()->size(); j++)
 									{
 										cv::Rect rectangle2 = cv::boundingRect(cv::Mat(pipeline.GetFilterContoursOutput()[j]));
 
@@ -96,7 +95,7 @@ public:
 										if (scoreTotal > highScore && scoreTotal > SCORE_THRESHOLD)
 										{
 											highScore = scoreTotal;
-											target = new boundingRect(rectangle1, rectangle2);
+											target = boundingRect(rectangle1, rectangle2);
 										}
 									}
 								}
@@ -108,12 +107,12 @@ public:
 								 * We can then draw a right triangle with the height being 1/2 * viewHeight, the length being distance, and the angle
 								 * being 1/2 * the vertical FOV of the camera. We can then use trigonometry to come up with the equation for distance below
 								 */
-								double viewHeight = TARGET_HEIGHT * IMG_HEIGHT / (target->bottom - target->top);
+								double viewHeight = TARGET_HEIGHT * IMG_HEIGHT / (target.bottom - target.top);
 								double localDistance = .5*viewHeight/std::tan(CAMERA_FOV_VERT*M_PI/(2*180));
 
 								//Save off the center of the target and distance for use in auto/teleop code
 								m_lock->lock();
-								centerX = (target->left+target->right)/2;
+								centerX = (target.left+target.right)/2;
 								distance = localDistance;
 								m_lock->unlock();
 							}
@@ -146,34 +145,34 @@ private:
 	//The height of the bounding box around both rectangles should be approximately double the width
 	double boundingRatioScore(cv::Rect rectangle1, cv::Rect rectangle2)
 	{
-		boundingRect* bounding = new boundingRect(rectangle1, rectangle2);
+		boundingRect bounding(rectangle1, rectangle2);
 
-		return ratioToScore((bounding->top-bounding->bottom)/(2*(bounding->left-bounding->right)));
+		return ratioToScore((bounding.top-bounding.bottom)/(2*(bounding.left-bounding.right)));
 	}
 
 	//The width of either contour should be approximately 1/4 of the total bounding box width
 	double contourWidthScore(cv::Rect rectangle1, cv::Rect rectangle2)
 	{
-		boundingRect* bounding = new boundingRect(rectangle1, rectangle2);
+		boundingRect bounding(rectangle1, rectangle2);
 
-		return ratioToScore(rectangle1.width*4/(bounding->right-bounding->left));
+		return ratioToScore(rectangle1.width*4/(bounding.right-bounding.left));
 	}
 
 	//The top edges should be very close together. Find the difference, then scale it by the bounding box height.
 	//This results in an ideal 0 instead of an ideal 1, so add 1
 	double topEdgeScore(cv::Rect rectangle1, cv::Rect rectangle2)
 	{
-		boundingRect* bounding = new boundingRect(rectangle1, rectangle2);
+		boundingRect bounding(rectangle1, rectangle2);
 
-		return ratioToScore(1 + (rectangle1.y - rectangle2.y)/(bounding->top-bounding->bottom));
+		return ratioToScore(1 + (rectangle1.y - rectangle2.y)/(bounding.top-bounding.bottom));
 	}
 
 	//The spacing between the left edges should be 3/4 of the target width
 	double leftSpacingScore(cv::Rect rectangle1, cv::Rect rectangle2)
 	{
-		boundingRect* bounding = new boundingRect(rectangle1, rectangle2);
+		boundingRect bounding(rectangle1, rectangle2);
 
-		return ratioToScore(std::abs(rectangle2.x - rectangle1.x)*3/(4*bounding->right-bounding->left));
+		return ratioToScore(std::abs(rectangle2.x - rectangle1.x)*3/(4*bounding.right-bounding.left));
 	}
 
 	//The width of the two contours should match
