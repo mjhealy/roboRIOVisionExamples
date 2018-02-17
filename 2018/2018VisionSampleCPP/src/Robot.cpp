@@ -73,14 +73,15 @@ public:
 								boundingRect target;
 
 								//Iterate through list of found contours
-								for(unsigned int i=0; i < pipeline.GetFilterContoursOutput()->size(); i++)
+								const auto & foundContours = *pipeline.GetFilterContoursOutput();
+								for(unsigned int i=0; i < foundContours.size(); i++)
 								{
-									cv::Rect rectangle1 = cv::boundingRect(cv::Mat(pipeline.GetFilterContoursOutput()[i]));
+									cv::Rect rectangle1 = cv::boundingRect(cv::Mat(foundContours[i]));
 
 									//For each contour, iterate through the list of remaining contours to try all pairs
-									for(unsigned int j=i+1; j < pipeline.GetFilterContoursOutput()->size(); j++)
+									for(unsigned int j=i+1; j < foundContours.size(); j++)
 									{
-										cv::Rect rectangle2 = cv::boundingRect(cv::Mat(pipeline.GetFilterContoursOutput()[j]));
+										cv::Rect rectangle2 = cv::boundingRect(cv::Mat(foundContours[j]));
 
 										//Calculate a total score across all 6 measurements
 										double scoreTotal = 0;
